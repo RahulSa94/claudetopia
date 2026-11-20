@@ -1,0 +1,564 @@
+<meta name="dash-one-writer">
+<script src="config.js"></script>
+<style>
+.ci{font-family:var(--font-anthropic-sans);color:var(--color-fg);position:relative}
+.ci h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0 0 var(--cds-gap-xs)}
+.ci h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:var(--cds-gap-xl) 0 var(--cds-gap-xs)}
+.ci .lede{font-size:var(--cds-font-size-body);margin:0 0 var(--cds-gap-md);max-width:72ch}
+.ci .muted{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.ci .paid{display:inline-block;border:1px solid var(--color-warn);color:var(--color-warn);border-radius:999px;padding:0 8px;font-size:11px;margin-left:6px;vertical-align:middle}
+.ci .controls{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);align-items:flex-end;background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);margin:var(--cds-gap-md) 0}
+.ci .field{display:flex;flex-direction:column;gap:4px}
+.ci .field label{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.ci input[type=date]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg);color:var(--color-fg);min-height:36px}
+.ci .presets{display:flex;gap:6px;flex-wrap:wrap}
+.ci button{font:inherit;font-size:13px;min-height:36px;padding:6px 12px;border-radius:var(--cds-radius);border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
+.ci button.primary{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.ci button:focus-visible,.ci input:focus-visible,.ci select:focus-visible{outline:2px solid var(--color-fg);outline-offset:2px}
+.ci .pending{color:var(--color-warn);font-size:var(--cds-font-size-caption)}
+.ci .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--cds-gap-md);min-height:96px}
+.ci .tile{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg)}
+.ci .tile .v{font-family:var(--font-anthropic-serif);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.ci .wrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch;border:1px solid var(--color-border-line);border-radius:var(--cds-radius)}
+.ci table{border-collapse:collapse;width:max-content;min-width:100%;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.ci th,.ci td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--color-border-line);vertical-align:middle;white-space:nowrap}
+.ci td:last-child{white-space:normal;min-width:220px;max-width:320px}
+.ci th{position:sticky;top:0;background:var(--color-bg);z-index:1;color:var(--color-fg-muted);font-weight:var(--cds-font-weight-medium)}
+.ci td:first-child,.ci th:first-child{position:sticky;left:0;background:var(--color-bg);z-index:2}
+.ci td:first-child .ci-vis > div:last-child{white-space:normal;max-width:180px}
+.ci td.n,.ci th.n{text-align:right}
+.ci .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-weight:var(--cds-font-weight-medium);white-space:nowrap;border:1px solid currentColor}
+.ci .v-Scale{color:var(--color-ok)}.ci .v-Fix-Pause{color:var(--color-bad)}.ci .v-Review{color:var(--color-warn)}.ci .v-Iterate{color:var(--color-fg)}.ci .v-Test{color:var(--color-fg-muted)}
+.ci .good{color:var(--color-ok)}.ci .bad{color:var(--color-bad)}
+.ci .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);max-width:80ch}
+.ci .valid{min-height:24px}
+.ci details{margin-top:var(--cds-gap-xl)}.ci details li{margin-bottom:4px}
+.ci-build{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.ci-cur{position:absolute;left:0;top:0;display:flex;align-items:flex-start;gap:2px;will-change:transform;transition:transform .55s cubic-bezier(.45,.05,.25,1),opacity .4s}
+.ci-cur svg{width:18px;height:18px;flex:none}
+.ci-tag{margin-top:12px;border-radius:8px;color:#fff;padding:5px 8px;font-size:11px;line-height:1.35;max-width:230px;box-shadow:var(--cds-shadow-popover)}
+.ci-tag b{display:block;font-size:12px}
+.ci-tag i{font-style:normal;opacity:.85;display:block}
+.ci-tag span{display:block;font-family:ui-monospace,monospace;font-size:10.5px;min-height:14px}
+.ci.ci-building .ci-step{opacity:.18;filter:blur(1px)}
+.ci .ci-step{transition:opacity .7s ease-out,filter .7s ease-out}
+.ci .ci-step.ci-in{opacity:1;filter:none}
+.ci.ci-building :is(#takeaway,#validation,#tiles .tile,#skill p,.wrap th,.wrap td){clip-path:inset(0 100% 0 0)}
+@keyframes ci-type{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.ci .ci-vis{display:flex;gap:10px;align-items:center;min-width:220px}
+.ci .ci-frame{flex:none;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--color-border-line);background:var(--color-panel);display:flex;align-items:center;justify-content:center;color:var(--color-fg-muted);font-size:10px;text-align:center;line-height:1.2}
+.ci .ci-frame.rect{width:54px;height:96px}
+.ci .ci-frame.wide{width:96px;height:64px}
+.ci .ci-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.ci .ci-vis a{color:inherit;text-decoration:underline}
+.ci tr.ci-row-now td{background:color-mix(in srgb,var(--color-fg) 6%,transparent)}
+</style>
+<div class="ci">
+  <div class="ci-build" data-draw="build" aria-hidden="true"></div>
+  <h1 id="title" class="ci-step" data-draw="title">Creative Intelligence</h1>
+  <p class="lede ci-step" id="takeaway">For <b data-draw="proj-name">—</b>, <span data-draw="range">—</span>: <b data-draw="n-scale" data-source="ci_counts" data-field="n" data-where="verdict=Scale">—</b> creatives earned Scale, <b data-draw="n-iterate" data-source="ci_counts" data-field="n" data-where="verdict=Iterate">—</b> Iterate and <b data-draw="n-fix" data-source="ci_counts" data-field="n" data-where="verdict=Fix-Pause">—</b> Fix-Pause, judged against each project's own target cost per lead.</p>
+
+  <div class="controls ci-step" id="controls">
+    <div class="field"><label for="f-src">Data</label><select id="f-src" class="dash-select" data-draw="src-opts" aria-label="Data"></select></div>
+    <div class="field"><label for="f-proj">Project</label><select id="f-proj" class="dash-select" data-draw="proj-opts" aria-label="Project"></select></div>
+    <div class="field"><label for="f-since">From</label><input id="f-since" type="date" min="2020-01-01" max="2035-12-31"></div>
+    <div class="field"><label for="f-until">To</label><input id="f-until" type="date" min="2020-01-01" max="2035-12-31"></div>
+    <div class="field"><label>Quick range</label><div class="presets">
+      <button type="button" data-days="7">Last 7 days</button>
+      <button type="button" data-days="30">Last 30 days</button>
+      <button type="button" data-days="90">Last 3 months</button>
+    </div></div>
+    <div class="field"><label for="f-goal">Goal</label><select id="f-goal" class="dash-select" data-draw="goal-opts" aria-label="Goal" data-source="ci_creatives"></select></div>
+    <div class="field"><label for="f-verdict">Verdict</label>
+      <select id="f-verdict" class="dash-select" aria-label="Verdict">
+        <option value="">All verdicts</option><option>Scale</option><option>Iterate</option><option>Fix-Pause</option><option>Review before pausing</option><option>Test</option>
+      </select></div>
+    <div class="field"><label for="f-format">Format</label>
+      <select id="f-format" class="dash-select" aria-label="Format">
+        <option value="">All formats</option><option>Static</option><option>Carousel</option><option>Video</option>
+      </select></div>
+    <div class="field"><label>&nbsp;</label><div class="presets"><button type="button" class="primary" id="apply">Apply</button><button type="button" id="reset">Reset</button></div></div>
+    <p class="pending" id="pending" hidden>Changes not applied yet. Press Apply.</p>
+  </div>
+
+  <div class="tiles ci-step" id="tiles" data-draw="tiles" data-source="ci_totals"></div>
+  <p class="muted valid ci-step" id="validation" data-draw="validation" data-source="ci_totals">—</p>
+
+  <h2 id="verdicts-h" class="ci-step">Static images: verdict for every creative</h2>
+  <div class="wrap ci-step" id="static-w"><table id="t-static" data-source="ci_formats" data-row-key="key">
+    <thead><tr><th data-field="creative">Creative</th><th data-field="campaign_type">Campaign type</th><th data-field="goal">Goal</th><th class="n" data-field="spend">Spend</th><th class="n" data-field="impressions">Impr.</th><th class="n" data-field="reach">Reach</th><th class="n" data-field="frequency">Freq.</th><th class="n" data-field="link_ctr">Link CTR %</th><th class="n" data-field="bench_ctr">Type avg CTR %</th><th class="n" data-field="reach_to_lead">Reach→lead %</th><th class="n" data-field="bench_rtl">Type avg %</th><th class="n" data-field="leads">Leads</th><th class="n" data-field="cpl">CPL</th><th data-field="verdict">Verdict</th><th data-field="why">Why</th></tr></thead>
+    <tbody data-draw="t-static"></tbody></table></div>
+
+  <h2 id="carousel-h" class="ci-step">Carousels: verdict for every creative</h2>
+  <div class="wrap ci-step" id="carousel-w"><table id="t-carousel" data-source="ci_formats" data-row-key="key">
+    <thead><tr><th data-field="creative">Creative</th><th data-field="campaign_type">Campaign type</th><th data-field="goal">Goal</th><th class="n" data-field="spend">Spend</th><th class="n" data-field="impressions">Impr.</th><th class="n" data-field="reach">Reach</th><th class="n" data-field="frequency">Freq.</th><th class="n" data-field="link_ctr">Link CTR %</th><th class="n" data-field="bench_ctr">Type avg CTR %</th><th class="n" data-field="reach_to_lead">Reach→lead %</th><th class="n" data-field="bench_rtl">Type avg %</th><th class="n" data-field="leads">Leads</th><th class="n" data-field="cpl">CPL</th><th data-field="verdict">Verdict</th><th data-field="why">Why</th></tr></thead>
+    <tbody data-draw="t-carousel"></tbody></table></div>
+
+  <h2 id="hooks-h" class="ci-step">Videos: hook, hold and verdict</h2>
+  <div class="wrap ci-step" id="video-w"><table id="t-video" data-source="ci_formats" data-row-key="key">
+    <thead><tr><th data-field="creative">Video</th><th data-field="campaign_type">Campaign type</th><th data-field="goal">Goal</th><th class="n" data-field="spend">Spend</th><th class="n" data-field="impressions">Impr.</th><th class="n" data-field="reach">Reach</th><th class="n" data-field="v3s">3-sec views</th><th class="n" data-field="hook3">Hook %</th><th class="n" data-field="bench_hook3">Type avg %</th><th class="n" data-field="thruplays">ThruPlays</th><th class="n" data-field="hold3">Hold %</th><th class="n" data-field="bench_hold3">Type avg %</th><th class="n" data-field="link_ctr">Link CTR %</th><th class="n" data-field="reach_to_lead">Reach→lead %</th><th class="n" data-field="leads">Leads</th><th class="n" data-field="cpl">CPL</th><th data-field="verdict">Verdict</th><th data-field="scenario">Diagnosis</th></tr></thead>
+    <tbody data-draw="t-video"></tbody></table></div>
+  <p class="muted" data-draw="paid-note">—</p>
+  <p class="muted">Every number is judged against creatives of the same campaign type (objective), optimisation goal and format, so a lead-form video is never compared with a traffic static. "Type avg" is that group's average. Green = 20%+ better, red = 20%+ worse. Hold = ThruPlays ÷ 3-second views. Reach is the sum of each ad's reach, so it can count one person twice. Lead-goal verdicts use the project's target CPL; Test = under 2× target CPL spent; Review before pausing = would be Fix-Pause but it is the top spender or top lead source in its campaign type. Diagnosis (videos with 1,000+ impressions): 1 · keep the opening, recut the body · 2 · swap only the first 3 seconds · 3 · fix CTA or offer · 4 · concept fails · 5 · new angle.</p>
+
+  <h2 id="patterns-h" class="ci-step">Hook-type patterns</h2>
+  <div class="wrap ci-step" id="patterns-w"><table id="patterns" data-source="ci_patterns" data-row-key="key">
+    <thead><tr><th data-field="hook_type">Hook type</th><th data-field="goal">Goal</th><th class="n" data-field="ads">Creatives</th><th class="n" data-field="spend">Spend</th><th class="n" data-field="leads">Leads</th><th class="n" data-field="cpl">CPL</th><th class="n" data-field="hook">Hook %</th><th data-field="read">Read as</th></tr></thead>
+    <tbody data-draw="patterns"></tbody></table></div>
+  <p class="muted">Hook types are read from ad names and are unconfirmed. A pattern needs 3+ creatives; fewer is an early signal.</p>
+
+  <h2 id="briefs-h" class="ci-step">What to build next</h2>
+  <div class="wrap ci-step" id="briefs-w"><table id="briefs" data-source="ci_briefs" data-row-key="key">
+    <thead><tr><th class="n" data-field="rank">#</th><th data-field="build">Build</th><th data-field="why">Why</th><th data-field="metric_to_beat">Metric to beat</th></tr></thead>
+    <tbody data-draw="briefs"></tbody></table></div>
+
+  <h2 id="skill-h" class="ci-step">This period's skill</h2>
+  <div class="card ci-step" id="skill">
+    <span data-draw="skill" data-source="ci_creatives"></span>
+    <div data-skill="hook-hold"><p><b>Hook versus hold.</b> A video can fail at the opening or in the body, and each needs the opposite fix. Read the two numbers separately before calling a video good or bad.</p><p><b>15-minute exercise:</b> pick one Scenario 1 or 2 video above and write three new first-3-second openings, keeping everything else the same.</p></div>
+    <div data-skill="one-variable" hidden><p><b>Change one thing at a time.</b> When a creative is close to target, change only the hook, only the body or only the CTA, so the next read shows which change worked.</p><p><b>15-minute exercise:</b> take one Iterate creative and write a brief that changes a single element.</p></div>
+  </div>
+
+  <details id="method" class="ci-step">
+    <summary>How this works, and what it leaves out</summary>
+    <ul>
+      <li>Free core: Meta's Ads MCP (connector "metamcp"), read only. In Live it runs with each viewer's own Meta access, or the owner's where the owner shares the connector.</li>
+      <li>Target CPL per project = monthly spend target ÷ monthly lead target. Leads are what Meta reports, not CRM-qualified leads.</li>
+      <li>Spend check: ad-level spend is compared with ad-set spend; a gap over 2% is flagged.</li>
+      <li data-draw="excluded">—</li>
+      <li>Stored pulls (the Data picker) come from a dated store kept in the owner's Google Drive (Google Drive MCP), so people without connectors see the numbers. Every pull is kept.</li>
+      <li>Thumbnails are stored in the dashboard, because dashboard pages may not load images from Facebook.</li>
+      <li>Format: Video if the ad has video plays; Carousel if it has carousel cards or "carousel" in its name; otherwise Static.</li>
+      <li data-draw="disclaimer">—</li>
+    </ul>
+  </details>
+</div>
+<script>
+{
+  const CFG = window.CI_CFG || {accounts: [], default_target_cpl: 1000};
+  const ACC = new Map((CFG.accounts || []).map((a) => [String(a.id), a]));
+  const tcpl = (id) => (ACC.get(String(id)) || {}).target_cpl || CFG.default_target_cpl || 1000;
+  const CUR = CFG.currency || '', LOC = CFG.locale || 'en-IN';
+  const money = (n) => CUR + Math.round(n).toLocaleString(LOC);
+  const OWN = Object.assign({patterns: 'Media Manager', briefs: 'Creative Director', disclaimer: 'Legal'}, CFG.owners || {});
+  const PAID = !!(CFG.paid_layer && CFG.paid_layer.supermetrics);
+  window.CI = {applied: 0};
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const daysAgo = (n) => { const d = new Date(); d.setUTCDate(d.getUTCDate() - n); return iso(d); };
+
+  const loader = async ({answer, call, args}) => {
+    const parse = (x) => {
+      let a = x;
+      if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { throw new Error(a); } }
+      if (a && a.error) throw new Error(typeof a.error === 'string' ? a.error : (a.error.message || 'Meta returned an error'));
+      let ents = a && a.ad_entities;
+      if (typeof ents === 'string') ents = JSON.parse(ents);
+      if (!Array.isArray(ents)) throw new Error('Meta returned no ad rows');
+      return {a, ents};
+    };
+    let page = parse(answer); let all = page.ents; let guard = 0;
+    while (page.a.pagination && page.a.pagination.next_cursor && guard < 10) {
+      page = parse(await call('ads_get_ad_entities', {...args, cursor: page.a.pagination.next_cursor}));
+      all = all.concat(page.ents); guard += 1;
+    }
+    const a = page.a, ents = all;
+    const n = (v) => (v === null || v === undefined || v === '' ? 0 : Number(typeof v === 'object' ? v.value : v));
+    const rows = ents.map((e) => ({
+      id: String(e.id), name: e.name || '', adset_id: e.adset_id ? String(e.adset_id) : '', optimization_goal: e.optimization_goal || '',
+      campaign_id: e.campaign_id ? String(e.campaign_id) : '', objective: e.objective || '', reach: n(e.reach), plays: n(e.video_play_actions),
+      spend: n(e.amount_spent), impressions: n(e.impressions), link_clicks: n(e.link_click), lpv: n(e.landing_page_view), leads: n(e.lead),
+      p25: n(e.video_p25_watched_actions), p75: n(e.video_p75_watched_actions), thruplays: n(e.video_thruplay_watched_actions),
+    }));
+    return {rows, truncated: !!(a.pagination && a.pagination.next_cursor)};
+  };
+  dash.loader('ads', {description: 'Meta returns the ads as JSON text inside ad_entities; this turns it into one row per ad, fetching further pages when there are more.', fn: loader});
+  dash.loader('adsets', {description: 'Meta returns the ad sets as JSON text inside ad_entities; this turns it into one row per ad set with its optimisation goal.', fn: loader});
+
+  const smLoader = async ({answer, call}) => {
+    const un = (x) => { let a = x; if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { throw new Error(a); } } if (a && a.success === false) throw new Error((a.error && (a.error.message || a.error)) || a.message || 'Supermetrics returned an error'); return a; };
+    let a = un(answer); let d = a.data || a; let guard = 0;
+    while (d && d.schedule_id && d.status !== 'completed' && !d.rows && !(Array.isArray(d.data) || typeof d.data === 'string') && guard < 30) {
+      a = un(await call('get_async_query_results', {schedule_id: d.schedule_id, compress: false})); d = a.data || a; guard += 1;
+      if (d && /fail|error/i.test(d.status || '')) throw new Error(d.message || 'Supermetrics query failed');
+    }
+    const ids = d.requested_field_ids || ['ad_id'];
+    let raw = d.data !== undefined ? d.data : d.rows; let rows = [];
+    const csv = (line) => { const out = []; let cur = '', q = false; for (let i = 0; i < line.length; i++) { const ch = line[i]; if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; } else if (ch === '"') q = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out; };
+    if (typeof raw === 'string') { rows = raw.split('\n').slice(1).map((l) => l.trim()).filter(Boolean).map(csv); }
+    else if (Array.isArray(raw)) { rows = raw.map((r) => (Array.isArray(r) ? r : ids.map((f) => r[f]))); if (rows.length && !/^\d+$/.test(String(rows[0][0]))) rows = rows.slice(1); }
+    return {rows: rows.map((r) => Object.fromEntries(ids.map((f, i) => [f, r[i] == null ? '' : String(r[i])]))).filter((r) => r.ad_id)};
+  };
+  ['sm_previews', 'sm_format', 'sm_carousel'].forEach((id) => dash.loader(id, {description: 'Supermetrics (paid, optional) answers with a schedule id; this waits for the result and turns it into one row per ad.', fn: smLoader}));
+
+  const clean = (nm) => String(nm || '').replace(/\s*[–-]\s*copy\b/ig, '').trim();
+  dash.calc('ci_thumbs', {inputs: ['ads', 'thumb_map', 'thumb_imgs'], title: 'Stored thumbnail per creative',
+    description: 'For each creative name, the first stored thumbnail of any of its ads.',
+    fn: (ads, map, imgs) => {
+      const img = new Map(imgs.map((i) => [i.img, i.thumb])); const byAd = new Map(map.map((m) => [String(m.ad_id), m.img])); const out = new Map();
+      ads.forEach((a) => { const k = clean(a.name); const t = img.get(byAd.get(a.id)); if (t && !out.has(k)) out.set(k, {key: k, creative: k, thumb: t}); });
+      map.forEach((m) => { const k = clean(m.ad_name); const t = img.get(m.img); if (t && !out.has(k)) out.set(k, {key: k, creative: k, thumb: t}); });
+      return [...out.values()];
+    }});
+  dash.calc('ci_media', {inputs: ['ads', 'sm_previews'], title: 'Live ad preview links (paid layer)',
+    description: 'For each creative name, the first live preview link Supermetrics returns for its ads.',
+    fn: (ads, previews) => {
+      const nameOf = new Map(ads.map((a) => [a.id, clean(a.name)])); const m = new Map();
+      previews.forEach((p) => { const k = nameOf.get(p.ad_id) || clean(p.ad_name); if (!m.has(k)) m.set(k, {key: k, creative: k, preview_url: p.desktop_feed_preview_url || p.mobile_feed_preview_url || p.instagram_preview_url || ''}); });
+      return [...m.values()];
+    }});
+
+  const pullOf = (rows) => { const p = dash.params().src; const pulls = [...new Set(rows.map((r) => r.pull))].sort(); return !p || p === 'latest' || p === 'live' ? pulls[pulls.length - 1] : p; };
+  const snapRows = (snap) => { const pull = pullOf(snap), acct = dash.params().account; return snap.filter((r) => r.pull === pull && String(r.account) === acct); };
+  dash.calc('snap_ads', {inputs: ['snap'], title: 'Stored pull: ads of the chosen project', description: 'The chosen stored pull (latest unless one is picked) for the chosen project, shaped like the live ads.',
+    fn: (snap) => snapRows(snap).map((r) => ({id: String(r.ad_id), name: r.ad_name, adset_id: r.optimization_goal + '|' + r.adset, objective: r.objective, spend: +r.spend, impressions: +r.impressions, reach: +r.reach, plays: +r.v3s, link_clicks: +r.link_clicks, lpv: +r.lpv, leads: +r.leads, p25: +r.p25, p75: +r.p75, thruplays: +r.thruplays}))});
+  dash.calc('snap_adsets', {inputs: ['snap'], title: 'Stored pull: ad sets of the chosen project', description: 'Ad sets of the chosen stored pull with goal and spend, added up from the ads.',
+    fn: (snap) => { const m = new Map(); snapRows(snap).forEach((r) => { const id = r.optimization_goal + '|' + r.adset; const o = m.get(id) || {id, optimization_goal: r.optimization_goal, spend: 0}; o.spend += +r.spend; m.set(id, o); }); return [...m.values()]; }});
+  dash.calc('snap_fm', {inputs: ['snap'], title: 'Stored pull: 3-second views', description: 'Three-second video views per ad from the chosen stored pull.',
+    fn: (snap) => snapRows(snap).map((r) => ({ad_id: String(r.ad_id), action_video_view: +r.v3s}))});
+  dash.calc('snap_car', {inputs: ['snap'], title: 'Stored pull: carousel cards', description: 'Stored pulls hold no carousel cards, so carousels are told apart by name.', fn: (snap) => []});
+
+  const RULES = [...(CFG.hook_tags || []).map(([re, label]) => [new RegExp(re, 'i'), label]),
+    [/influencer|creator|ugc/i, 'Face to camera (influencer)'], [/testimon|review/i, 'Testimonial'], [/ai[ _-]?video|ai render/i, 'AI render walkthrough'],
+    [/price|%|offer|payment|emi|discount|sale/i, 'Price / offer'], [/launch|last|final|move in|ready|limited/i, 'Scarcity / urgency'], [/elevation|product|hero/i, 'Product / project visual'],
+    [/carous/i, 'Carousel showcase'], [/club|amenit|lifestyle|couple|family/i, 'Lifestyle / amenity'], [/location|connect|near/i, 'Location / connectivity'],
+    [/festive|puja|diwali|christmas|eid|holiday/i, 'Festive / seasonal'], [/question|hesitat|problem|why /i, 'Problem / question'], [/award|trust/i, 'Trust / awards'], [/instagram post|^post/i, 'Boosted post']];
+  const tag = (nm) => { const hit = RULES.find(([re]) => re.test(nm)); return hit ? hit[1] : 'Untagged (confirm)'; };
+
+  const CHAIN = (S, ADS, SETS, FM, CAR) => {
+  const TS = S ? ' (stored pull)' : '';
+  dash.calc('ci_creatives' + S, {
+    inputs: [ADS, SETS], title: 'Creatives with verdicts' + TS,
+    description: 'Ads grouped by creative within each campaign objective and optimisation goal, with CPL against the project target, hook and hold, and the verdict.',
+    fn: (ads, adsets) => {
+      const T = tcpl(dash.params().account);
+      const GL = {LEAD_GENERATION: 'Lead forms', QUALITY_LEAD: 'Conversion leads', OFFSITE_CONVERSIONS: 'Website leads', THRUPLAY: 'ThruPlay views', LANDING_PAGE_VIEWS: 'Landing page views', LINK_CLICKS: 'Link clicks', REACH: 'Reach', IMPRESSIONS: 'Impressions', VISIT_INSTAGRAM_PROFILE: 'Instagram profile visits', POST_ENGAGEMENT: 'Post engagement', CONVERSATIONS: 'Conversations'};
+      const OL = {OUTCOME_LEADS: 'Leads', LEAD_GENERATION: 'Leads', OUTCOME_ENGAGEMENT: 'Engagement', POST_ENGAGEMENT: 'Engagement', VIDEO_VIEWS: 'Engagement (video views)', OUTCOME_AWARENESS: 'Awareness', BRAND_AWARENESS: 'Awareness', REACH: 'Awareness', OUTCOME_TRAFFIC: 'Traffic', LINK_CLICKS: 'Traffic', OUTCOME_SALES: 'Sales', CONVERSIONS: 'Sales', MESSAGES: 'Messages'};
+      const goalOf = new Map(adsets.map((s) => [s.id, s.optimization_goal]));
+      const g = new Map();
+      ads.forEach((a) => {
+        const gc = goalOf.get(a.adset_id) || 'UNKNOWN'; const nm = clean(a.name); const obj = a.objective || 'UNKNOWN'; const k = obj + '|' + gc + '|' + nm;
+        const o = g.get(k) || {gc, obj, creative: nm, spend: 0, impressions: 0, reach: 0, plays: 0, link_clicks: 0, lpv: 0, leads: 0, p25: 0, p75: 0, thruplays: 0, ads: 0, ad_ids: []};
+        ['spend', 'impressions', 'reach', 'plays', 'link_clicks', 'lpv', 'leads', 'p25', 'p75', 'thruplays'].forEach((f) => { o[f] += +a[f] || 0; }); o.ads += 1; o.ad_ids.push(a.id); g.set(k, o);
+      });
+      const rows = [...g.values()].map((o) => ({...o, video: o.p25 > 0 || o.thruplays > 0 || o.plays > 0}));
+      const base = new Map();
+      rows.filter((r) => r.video && r.p25 > 0).forEach((r) => { const k = r.obj + '|' + r.gc; const b = base.get(k) || {i: 0, p25: 0, p75: 0, lc: 0}; b.i += r.impressions; b.p25 += r.p25; b.p75 += r.p75; b.lc += r.link_clicks; base.set(k, b); });
+      const leadGoal = (gc) => ['LEAD_GENERATION', 'QUALITY_LEAD', 'OFFSITE_CONVERSIONS'].includes(gc);
+      const med = (xs) => { xs = xs.filter((x) => x).sort((a, b) => a - b); const n = xs.length; return n ? (n % 2 ? xs[(n - 1) / 2] : (xs[n / 2 - 1] + xs[n / 2]) / 2) : null; };
+      const metricOf = (gc) => (gc === 'LANDING_PAGE_VIEWS' ? ['lpv', 'landing page view'] : gc === 'THRUPLAY' ? ['thruplays', 'ThruPlay'] : ['link_clicks', 'link click']);
+      const bk = (r) => r.obj + '|' + r.gc + '|' + (r.video ? 'v' : 's');
+      const goalMed = new Map();
+      [...new Set(rows.map(bk))].forEach((b) => { const rs = rows.filter((r) => bk(r) === b); if (leadGoal(rs[0].gc)) return; const [f] = metricOf(rs[0].gc); goalMed.set(b, med(rs.filter((r) => r.impressions >= 1000 && r[f]).map((r) => r.spend / r[f]))); });
+      const out = rows.map((r) => {
+        const cpl = r.leads ? Math.round(r.spend / r.leads) : null; let verdict, why;
+        if (leadGoal(r.gc)) {
+          if (r.spend < 2 * T || r.impressions < 1000) { verdict = 'Test'; why = `${money(r.spend)} spent, under 2× target CPL, too early${cpl && cpl <= 0.8 * T ? '; early signal good' : ''}`; }
+          else if (!r.leads) { verdict = 'Fix-Pause'; why = `0 leads on ${money(r.spend)}`; }
+          else if (cpl > 1.5 * T) { verdict = 'Fix-Pause'; why = `CPL ${(cpl / T).toFixed(1)}× the ${money(T)} target`; }
+          else if (cpl <= 0.8 * T && r.leads >= 5) { verdict = 'Scale'; why = `CPL ${Math.round(100 * cpl / T)}% of target, ${r.leads} leads`; }
+          else { verdict = 'Iterate'; why = `CPL ${Math.round(100 * cpl / T)}% of target, ${r.leads} leads`; }
+          if (r.gc === 'OFFSITE_CONVERSIONS' && r.link_clicks >= 30 && !r.leads) why += r.lpv / r.link_clicks >= 0.65 ? '; page loads fine, so check the form' : `; only ${Math.round(100 * r.lpv / r.link_clicks)}% of clicks load the page`;
+        } else {
+          const [f, label] = metricOf(r.gc); const m = goalMed.get(bk(r)); const c = r[f] ? r.spend / r[f] : null;
+          if (r.impressions < 1000 || !c) { verdict = 'Test'; why = 'Under 1,000 impressions or no results'; }
+          else if (m && c <= 0.8 * m) { verdict = 'Scale'; why = `${CUR}${c.toFixed(2)} per ${label} vs type median ${CUR}${m.toFixed(2)}`; }
+          else if (m && c > 1.5 * m) { verdict = 'Fix-Pause'; why = `${CUR}${c.toFixed(2)} per ${label}, ${(c / m).toFixed(1)}× type median`; }
+          else { verdict = 'Iterate'; why = `${CUR}${c.toFixed(2)} per ${label} vs type median ${CUR}${m ? m.toFixed(2) : '—'}`; }
+        }
+        const b = base.get(r.obj + '|' + r.gc); let hook = null, hold = null, base_hook = null, base_hold = null, scenario = null;
+        if (r.video && r.impressions) { hook = +(100 * r.p25 / r.impressions).toFixed(1); hold = r.p25 ? +(100 * r.p75 / r.p25).toFixed(1) : null; }
+        if (b && b.i) { base_hook = +(100 * b.p25 / b.i).toFixed(1); base_hold = b.p25 ? +(100 * b.p75 / b.p25).toFixed(1) : null; }
+        if (hook !== null && hold !== null && r.impressions >= 1000 && base_hook && base_hold) {
+          const hg = hook >= 1.2 * base_hook ? 'good' : hook <= 0.8 * base_hook ? 'poor' : 'avg';
+          const dg = hold >= 1.2 * base_hold ? 'good' : hold <= 0.8 * base_hold ? 'poor' : 'avg';
+          const restGood = (cpl !== null && cpl <= T) || (r.impressions && r.link_clicks / r.impressions >= 1.2 * (b.lc / b.i));
+          scenario = hg === 'good' && dg === 'poor' ? '1 · Good hook, poor hold' : hg === 'poor' && dg !== 'poor' && restGood ? '2 · Poor hook, good rest'
+            : hg === 'good' && dg !== 'poor' && leadGoal(r.gc) && !restGood ? '3 · Watched, no action' : hg === 'poor' && dg === 'poor' ? '4 · Poor hook and hold'
+            : hg === 'good' && dg === 'good' ? 'Strong hook and hold' : '5 · Average';
+        }
+        const fmt = r.video ? 'Video' : /carous|carousal|\bcards?\b/i.test(r.creative) ? 'Carousel' : 'Static';
+        return {key: r.obj + '|' + r.gc + '|' + r.creative, goal: GL[r.gc] || r.gc, goal_code: r.gc, campaign_type: OL[r.obj] || r.obj, objective: r.obj, creative: r.creative, format: fmt, hook_type: tag(r.creative),
+          ad_ids: r.ad_ids, reach: r.reach, frequency: r.reach ? +(r.impressions / r.reach).toFixed(2) : null, plays: r.plays, p25: r.p25, p75: r.p75, thruplays: r.thruplays,
+          reach_to_lead: r.reach ? +(100 * r.leads / r.reach).toFixed(3) : null,
+          ads: r.ads, spend: Math.round(r.spend), impressions: r.impressions, link_clicks: r.link_clicks, lpv: r.lpv, leads: r.leads, cpl, target_cpl: T,
+          link_ctr: r.impressions ? +(100 * r.link_clicks / r.impressions).toFixed(2) : null, hook, hold, base_hook, base_hold, scenario, verdict, why};
+      });
+      d3.group(out, (r) => r.objective + '|' + r.goal_code).forEach((rs) => {
+        const top = rs.reduce((a, b) => (b.spend > a.spend ? b : a));
+        if (top.verdict === 'Fix-Pause') { top.verdict = 'Review before pausing'; top.why += '; top spender in this campaign type'; }
+        const tl = rs.reduce((a, b) => (b.leads > a.leads ? b : a));
+        if (tl.leads > 0 && tl.verdict === 'Fix-Pause') { tl.verdict = 'Review before pausing'; tl.why += '; top lead source in this campaign type'; }
+      });
+      return out;
+    },
+  });
+
+  dash.calc('ci_formats' + S, {inputs: ['ci_creatives' + S, FM, CAR], title: 'Creatives by format, judged against their own campaign type' + TS,
+    description: 'Each creative split into Static, Carousel or Video, with 3-second views, hook (3-sec views / impressions) and hold (ThruPlays / 3-sec views) for videos, and benchmarks taken from the same campaign objective, optimisation goal and format.',
+    fn: (cr, fm, car) => {
+      const v3 = new Map(fm.map((f) => [String(f.ad_id), +f.action_video_view || 0]));
+      const carIds = new Set(car.filter((c) => c.carousel_card_image_url).map((c) => String(c.ad_id)));
+      const rows = cr.map((r) => {
+        const s3 = d3.sum(r.ad_ids || [], (id) => v3.get(id) || 0);
+        const format = r.format === 'Video' ? 'Video' : (r.format === 'Carousel' || (r.ad_ids || []).some((id) => carIds.has(id))) ? 'Carousel' : 'Static';
+        return {...r, format, v3s: format === 'Video' ? s3 : null, hook3: format === 'Video' && r.impressions && s3 ? +(100 * s3 / r.impressions).toFixed(1) : null, hold3: format === 'Video' && s3 ? +(100 * r.thruplays / s3).toFixed(1) : null};
+      });
+      const B = new Map();
+      d3.group(rows, (r) => r.objective + '|' + r.goal_code + '|' + r.format).forEach((rs, k) => {
+        const imp = d3.sum(rs, (r) => r.impressions), s3 = d3.sum(rs, (r) => r.v3s || 0), tp = d3.sum(rs, (r) => r.thruplays), lc = d3.sum(rs, (r) => r.link_clicks), rch = d3.sum(rs, (r) => r.reach), ld = d3.sum(rs, (r) => r.leads);
+        B.set(k, {ctr: imp ? 100 * lc / imp : null, rtl: rch ? 100 * ld / rch : null, hook3: imp && s3 ? 100 * s3 / imp : null, hold3: s3 ? 100 * tp / s3 : null, n: rs.length});
+      });
+      const leadGoal = (gc) => ['LEAD_GENERATION', 'QUALITY_LEAD', 'OFFSITE_CONVERSIONS'].includes(gc);
+      return rows.map((r) => {
+        const b = B.get(r.objective + '|' + r.goal_code + '|' + r.format);
+        const o = {...r, bench_ctr: b.ctr != null ? +b.ctr.toFixed(2) : null, bench_rtl: b.rtl != null ? +b.rtl.toFixed(3) : null, bench_hook3: b.hook3 != null ? +b.hook3.toFixed(1) : null, bench_hold3: b.hold3 != null ? +b.hold3.toFixed(1) : null, bench_n: b.n};
+        delete o.ad_ids;
+        if (o.format === 'Video' && o.hook3 != null && o.hold3 != null && o.impressions >= 1000 && o.bench_hook3 && o.bench_hold3) {
+          const hg = o.hook3 >= 1.2 * o.bench_hook3 ? 'good' : o.hook3 <= 0.8 * o.bench_hook3 ? 'poor' : 'avg';
+          const dg = o.hold3 >= 1.2 * o.bench_hold3 ? 'good' : o.hold3 <= 0.8 * o.bench_hold3 ? 'poor' : 'avg';
+          const restGood = (o.cpl !== null && o.cpl <= o.target_cpl) || (o.link_ctr !== null && o.bench_ctr && o.link_ctr >= 1.2 * o.bench_ctr);
+          o.scenario = hg === 'good' && dg === 'poor' ? '1 · Good hook, poor hold' : hg === 'poor' && dg !== 'poor' && restGood ? '2 · Poor hook, good rest'
+            : hg === 'good' && dg !== 'poor' && leadGoal(o.goal_code) && !restGood ? '3 · Watched, no action' : hg === 'poor' && dg === 'poor' ? '4 · Poor hook and hold'
+            : hg === 'good' && dg === 'good' ? 'Strong hook and hold' : '5 · Average';
+        } else if (o.format !== 'Video') o.scenario = null;
+        return o;
+      });
+    }});
+
+  dash.calc('ci_counts' + S, {inputs: ['ci_creatives' + S], title: 'Creatives by verdict' + TS, description: 'How many creatives got each verdict for the applied project and dates.',
+    fn: (creatives) => ['Scale', 'Iterate', 'Fix-Pause', 'Review before pausing', 'Test'].map((verdict) => ({verdict, n: creatives.filter((r) => r.verdict === verdict).length}))});
+  dash.calc('ci_totals' + S, {inputs: [ADS, SETS], title: 'Project totals and spend check' + TS, description: 'Total spend, Meta leads and CPL for the applied project and dates, and the gap between ad-level and ad-set-level spend.',
+    fn: (ads, adsets) => {
+      const T = tcpl(dash.params().account);
+      const spend = d3.sum(ads, (a) => +a.spend), leads = d3.sum(ads, (a) => +a.leads), setSpend = d3.sum(adsets, (s) => +s.spend);
+      return [{key: 'total', spend: Math.round(spend), leads, cpl: leads ? Math.round(spend / leads) : null, target_cpl: T, adset_spend: Math.round(setSpend), gap_pct: setSpend ? +(100 * Math.abs(spend - setSpend) / setSpend).toFixed(2) : null, ads: ads.length}];
+    }});
+  dash.calc('ci_patterns' + S, {inputs: ['ci_creatives' + S], title: 'Hook-type patterns' + TS, description: 'Creatives grouped by hook type within each goal: count, spend, leads, CPL and spend-weighted hook rate.',
+    fn: (creatives) => {
+      const out = [];
+      d3.group(creatives, (r) => r.goal, (r) => r.hook_type).forEach((byT, goal) => byT.forEach((rs, hook_type) => {
+        const spend = d3.sum(rs, (r) => r.spend), leads = d3.sum(rs, (r) => r.leads), T = rs[0].target_cpl, cpl = leads ? Math.round(spend / leads) : null;
+        const vids = rs.filter((r) => r.hook !== null), vs = d3.sum(vids, (r) => r.spend);
+        out.push({key: goal + '|' + hook_type, goal, hook_type, ads: rs.length, spend, leads, cpl, hook: vs ? +(d3.sum(vids, (r) => r.hook * r.spend) / vs).toFixed(1) : null, read: rs.length < 3 ? 'Early signal' : cpl !== null && cpl <= T ? 'Pattern: winning' : 'Pattern: losing'});
+      }));
+      return out;
+    }});
+  dash.calc('ci_briefs' + S, {inputs: ['ci_creatives' + S, 'ci_patterns' + S], title: 'What to build next' + TS,
+    description: 'Ranked next steps drafted by rule from the verdicts, hook diagnosis and patterns, for the creative owner to decide on.',
+    fn: (creatives, patterns) => {
+      const out = []; const by = (f) => creatives.filter(f).sort((a, b) => b.spend - a.spend);
+      by((r) => r.scenario && r.scenario.startsWith('2')).slice(0, 2).forEach((r) => out.push({build: `Swap only the first 3 seconds of “${r.creative}”`, why: `Opening is weak (hook ${r.hook}% vs ${r.base_hook}% average) but the body works`, metric_to_beat: `Hook above ${r.base_hook}%`}));
+      by((r) => r.verdict === 'Scale').slice(0, 2).forEach((r) => out.push({build: `Scale “${r.creative}” (${r.goal})`, why: r.why, metric_to_beat: r.cpl ? `Keep CPL under ${money(r.target_cpl)}` : 'Keep cost per result under the type median'}));
+      by((r) => r.scenario && r.scenario.startsWith('1')).slice(0, 1).forEach((r) => out.push({build: `Recut the body of “${r.creative}”, keep its opening`, why: `Hook ${r.hook}% is strong but hold ${r.hold}% is weak`, metric_to_beat: `Hold above ${r.base_hold}%`}));
+      patterns.filter((p) => p.read === 'Pattern: winning').sort((a, b) => b.leads - a.leads).slice(0, 1).forEach((p) => out.push({build: `Make 2 new “${p.hook_type}” creatives in a format or language not yet tried`, why: `${p.ads} creatives, ${p.leads} leads at ${money(p.cpl)} in ${p.goal}`, metric_to_beat: `CPL under ${money(p.cpl)}`}));
+      patterns.filter((p) => p.read === 'Pattern: losing' && p.spend > 0).sort((a, b) => b.spend - a.spend).slice(0, 1).forEach((p) => out.push({build: `Stop making “${p.hook_type}” for ${p.goal}`, why: `${p.ads} creatives, ${money(p.spend)} spent, ${p.leads ? 'CPL ' + money(p.cpl) : 'no leads'}`, metric_to_beat: '—'}));
+      by((r) => r.verdict === 'Fix-Pause').slice(0, 2).forEach((r) => out.push({build: `Pause “${r.creative}” (${r.goal})`, why: r.why, metric_to_beat: '—'}));
+      return out.slice(0, 7).map((o, i) => ({key: String(i + 1), rank: i + 1, ...o}));
+    }});
+  };
+  CHAIN('', 'ads', 'adsets', 'sm_format', 'sm_carousel');
+  CHAIN('_s', 'snap_ads', 'snap_adsets', 'snap_fm', 'snap_car');
+
+  /* ---------- controls: staged until Apply ---------- */
+  const q = (s) => [...document.querySelectorAll(s)];
+  const P = () => dash.params();
+  const setFields = () => {
+    const p = P();
+    q('#f-since').forEach((e) => { e.value = p.since; }); q('#f-until').forEach((e) => { e.value = p.until; });
+    q('#f-verdict').forEach((e) => { e.value = p.verdict || ''; }); q('#f-format').forEach((e) => { e.value = p.format || ''; });
+    q('#pending').forEach((e) => { e.hidden = true; });
+  };
+  const dirty = () => q('#pending').forEach((e) => { e.hidden = false; });
+  q('.ci .controls select, .ci .controls input').forEach((e) => e.addEventListener('change', dirty));
+  q('.ci .presets button[data-days]').forEach((b) => b.addEventListener('click', () => { const n = +b.dataset.days; q('#f-until').forEach((e) => { e.value = daysAgo(1); }); q('#f-since').forEach((e) => { e.value = daysAgo(n); }); dirty(); }));
+  const whole = (e) => e && e.value && e.validity.valid;
+  q('#apply').forEach((b) => b.addEventListener('click', () => {
+    const s = document.getElementById('f-since'), u = document.getElementById('f-until');
+    if (!whole(s) || !whole(u) || s.value > u.value) { dirty(); return; }
+    window.CI.applied += 1;
+    dash.setParams({src: document.getElementById('f-src').value || 'latest', account: document.getElementById('f-proj').value, since: s.value, until: u.value,
+      goal: document.getElementById('f-goal').value || null, verdict: document.getElementById('f-verdict').value || null, format: document.getElementById('f-format').value || null});
+    q('#pending').forEach((e) => { e.hidden = true; });
+    dash.draw('build');
+  }));
+  q('#reset').forEach((b) => b.addEventListener('click', () => { dash.resetParams(); window.CI.applied += 1; setFields(); dash.draw('build'); }));
+  setFields();
+
+  /* ---------- drawings ---------- */
+  const CH = /^ci_(creatives|formats|counts|totals|patterns|briefs)$/;
+  const hasSnap = () => !['missing', 'error'].includes(dash.data('snap').status);
+  const snapMode = () => (P().src || 'latest') !== 'live' && hasSnap();
+  const dd = (id) => dash.data(CH.test(id) && snapMode() ? id + '_s' : id);
+  const st = (id) => dd(id).status;
+  const fdate = d3.utcFormat('%-d %b %Y');
+  dash.draw('title', (el) => { el.textContent = CFG.title || 'Creative Intelligence'; });
+  dash.draw('proj-opts', (sel) => { sel.replaceChildren(...(CFG.accounts || []).map((a) => new Option(a.name, String(a.id)))); if (document.activeElement !== sel) sel.value = P().account; });
+  dash.draw('src-opts', (sel) => {
+    const d = dash.data('snap'); const pulls = d.status === 'ok' ? [...new Set(d.data.map((r) => r.pull))].sort().reverse() : [];
+    const opts = pulls.length ? [new Option(`Latest stored pull (${fdate(new Date(pulls[0]))})`, 'latest'), ...pulls.map((p) => new Option(`Stored pull of ${fdate(new Date(p))}`, p))] : [];
+    sel.replaceChildren(...opts, new Option('Live (your own Meta access)', 'live'));
+    if (document.activeElement !== sel) sel.value = pulls.length ? (P().src || 'latest') : 'live';
+  });
+  dash.draw('excluded', (el) => { el.textContent = CFG.excluded_note || 'Only the accounts listed in the settings are read.'; });
+  dash.draw('disclaimer', (el) => { el.textContent = CFG.disclaimer ? `Disclaimer (${OWN.disclaimer}): ${CFG.disclaimer}` : `Disclaimer: to be provided by ${OWN.disclaimer}.`; });
+  dash.draw('paid-note', (el) => { el.textContent = PAID ? 'Paid layer: 3-second views, live ad previews and carousel detection come from Supermetrics, a paid connector. Everything else uses free connectors. If Supermetrics is not connected, those columns stay empty and hook falls back to 25% views.' : 'Free mode: hook uses 25% video views from Meta\'s free connector; 3-second views and previews need the optional paid Supermetrics layer.'; });
+  const inr = (n) => Math.round(n).toLocaleString(LOC);
+  const msg = (el, id, cols) => { const s = st(id); if (s === 'ok') return true; el.replaceChildren(); const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = cols; td.className = 'muted'; td.textContent = s === 'error' ? 'This could not load.' : s === 'loading' ? 'Loading…' : s === 'connect' ? 'Connect Meta (or pick a stored pull) to see this.' : '—'; tr.append(td); el.append(tr); return false; };
+  const fill = (tbody, rows, cells) => { tbody.replaceChildren(); rows.forEach((r) => { const tr = document.createElement('tr'); tr.dataset.key = r.key; cells.forEach(([f, cls]) => { const td = document.createElement('td'); if (cls) td.className = cls; const v = f(r); if (v instanceof Node) td.append(v); else td.textContent = v ?? '—'; tr.append(td); }); tbody.append(tr); });
+    if (!rows.length) { const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = cells.length; td.className = 'muted'; td.textContent = 'Nothing matches these filters.'; tr.append(td); tbody.append(tr); } };
+  const pill = (v) => { const s = document.createElement('span'); s.className = 'pill v-' + String(v).split(' ')[0]; s.textContent = v; return s; };
+
+  dash.draw('proj-name', (el) => { el.textContent = (ACC.get(String(P().account)) || {}).name || '—'; });
+  dash.draw('range', (el) => { const p = P();
+    if (snapMode()) { const d = dash.data('snap'); const rs = d.status === 'ok' ? d.data : []; const pulls = [...new Set(rs.map((r) => r.pull))].sort(); const pull = !p.src || p.src === 'latest' ? pulls[pulls.length - 1] : p.src; const r = rs.find((x) => x.pull === pull);
+      el.textContent = r ? `${fdate(new Date(r.since))} – ${fdate(new Date(r.until))} (stored pull of ${fdate(new Date(pull))})` : 'stored pull'; return; }
+    el.textContent = `${fdate(new Date(p.since))} – ${fdate(new Date(p.until))} (live)`; });
+  const count = (name, v) => dash.draw(name, (el) => { const d = dd('ci_counts'); el.textContent = d.status === 'ok' ? (d.data.find((r) => r.verdict === v)?.n ?? 0) : '—'; });
+  count('n-scale', 'Scale'); count('n-iterate', 'Iterate'); count('n-fix', 'Fix-Pause');
+  dash.draw('goal-opts', (sel) => { const goals = st('ci_creatives') === 'ok' ? [...new Set(dd('ci_creatives').data.map((r) => r.goal))] : []; sel.replaceChildren(new Option('All goals', ''), ...goals.map((g) => new Option(g, g))); if (document.activeElement !== sel) sel.value = P().goal || ''; });
+  dash.draw('tiles', (el) => {
+    const d = dd('ci_totals'); el.replaceChildren();
+    if (d.status !== 'ok') { el.textContent = d.status === 'error' ? 'Totals could not load.' : ''; return; }
+    const r = d.data[0];
+    const tile = (label, field, val, cls) => { const t = document.createElement('div'); t.className = 'tile'; const l = document.createElement('div'); l.className = 'muted'; l.textContent = label; const v = document.createElement('div'); v.className = 'v' + (cls ? ' ' + cls : ''); v.dataset.source = 'ci_totals'; v.dataset.field = field; v.dataset.row = '0'; v.textContent = val; t.append(l, v); el.append(t); };
+    tile('Spend', 'spend', money(r.spend)); tile('Meta leads', 'leads', inr(r.leads));
+    tile('Cost per lead', 'cpl', r.cpl ? money(r.cpl) : '—', r.cpl ? (r.cpl <= r.target_cpl ? 'good' : 'bad') : ''); tile('Target CPL', 'target_cpl', money(r.target_cpl));
+  });
+  dash.draw('validation', (el) => {
+    const d = dd('ci_totals'); if (d.status !== 'ok') { el.textContent = d.status === 'error' ? 'Spend check could not run.' : '—'; return; }
+    const r = d.data[0];
+    el.textContent = r.gap_pct === null ? 'Spend check: no ad-set spend for these dates.' : r.gap_pct <= 2 ? `Spend check passed: ad-level ${money(r.spend)} vs ad-set ${money(r.adset_spend)} (gap ${r.gap_pct}%).` : `Spend check failed: ad-level ${money(r.spend)} vs ad-set ${money(r.adset_spend)} (gap ${r.gap_pct}%). Treat verdicts with care.`;
+    el.className = 'muted valid ci-step' + (el.classList.contains('ci-in') ? ' ci-in' : '') + (r.gap_pct !== null && r.gap_pct > 2 ? ' bad' : '');
+  });
+
+  const media = () => { const d = dd('ci_media'); return d.status === 'ok' ? new Map(d.data.map((m) => [m.creative, m])) : new Map(); };
+  const visual = (M) => (r) => {
+    const box = document.createElement('div'); box.className = 'ci-vis'; const m = M.get(r.creative);
+    const fr = document.createElement('div'); fr.className = 'ci-frame' + (r.format === 'Video' ? ' rect' : r.format === 'Carousel' ? ' wide' : '');
+    const T = dd('ci_thumbs'); const th = T.status === 'ok' ? T.data.find((x) => x.creative === r.creative) : null;
+    if (th && /^data:image\//.test(th.thumb)) { const im = document.createElement('img'); im.src = th.thumb; im.alt = `Thumbnail of ${r.creative}`; fr.append(im); }
+    else fr.textContent = T.status === 'loading' ? 'Loading…' : 'No image yet';
+    box.append(fr);
+    const t = document.createElement('div'); const nm = document.createElement('div'); nm.textContent = r.creative; t.append(nm);
+    if (m && /^https:/.test(m.preview_url || '')) { const ln = document.createElement('div'); ln.className = 'muted'; const a = document.createElement('a'); a.href = m.preview_url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'Live ad preview ↗'; ln.append(a); t.append(ln); }
+    box.append(t); return box;
+  };
+  const order = {'Lead forms': 0, 'Conversion leads': 1, 'Website leads': 2};
+  const srcId = () => (st('ci_formats') === 'ok' ? 'ci_formats' : 'ci_creatives');
+  const fview = (fmt) => { const p = P(); const d = dd(srcId()); return d.status === 'ok' ? d.data.filter((r) => r.format === fmt && (!p.goal || r.goal === p.goal) && (!p.verdict || r.verdict === p.verdict) && (!p.format || r.format === p.format)) : []; };
+  const cmp = (v, b, dp) => { const s = document.createElement('span'); s.textContent = v === null || v === undefined ? '—' : v.toFixed(dp); if (v != null && b) s.className = v >= 1.2 * b ? 'good' : v <= 0.8 * b ? 'bad' : ''; return s; };
+  const num = (v, dp) => (v === null || v === undefined ? '—' : dp ? v.toFixed(dp) : inr(v));
+  const sortRows = (rs) => rs.sort((a, b) => (a.campaign_type || '').localeCompare(b.campaign_type || '') || ((order[a.goal] ?? 9) - (order[b.goal] ?? 9)) || (b.spend - a.spend));
+  const flatCols = (M) => [[visual(M)], [(r) => r.campaign_type], [(r) => r.goal], [(r) => money(r.spend), 'n'], [(r) => inr(r.impressions), 'n'], [(r) => num(r.reach), 'n'], [(r) => num(r.frequency, 2), 'n'],
+    [(r) => cmp(r.link_ctr, r.bench_ctr, 2), 'n'], [(r) => num(r.bench_ctr, 2), 'n'], [(r) => cmp(r.reach_to_lead, r.bench_rtl, 3), 'n'], [(r) => num(r.bench_rtl, 3), 'n'],
+    [(r) => r.leads, 'n'], [(r) => (r.cpl ? money(r.cpl) : '—'), 'n'], [(r) => pill(r.verdict)], [(r) => r.why]];
+  ['Static', 'Carousel'].forEach((fmt) => dash.draw('t-' + fmt.toLowerCase(), (el) => { if (!msg(el, 'ci_creatives', 15)) return; fill(el, sortRows(fview(fmt)), flatCols(media())); }));
+  dash.draw('t-video', (el) => { if (!msg(el, 'ci_creatives', 18)) return; const M = media(); const sm = st('ci_formats') === 'ok';
+    fill(el, sortRows(fview('Video')), [[visual(M)], [(r) => r.campaign_type], [(r) => r.goal], [(r) => money(r.spend), 'n'], [(r) => inr(r.impressions), 'n'], [(r) => num(r.reach), 'n'],
+      [(r) => (sm ? num(r.v3s) : '—'), 'n'], [(r) => (sm ? cmp(r.hook3, r.bench_hook3, 1) : cmp(r.hook, r.base_hook, 1)), 'n'], [(r) => num(sm ? r.bench_hook3 : r.base_hook, 1), 'n'], [(r) => num(r.thruplays), 'n'],
+      [(r) => (sm ? cmp(r.hold3, r.bench_hold3, 1) : cmp(r.hold, r.base_hold, 1)), 'n'], [(r) => num(sm ? r.bench_hold3 : r.base_hold, 1), 'n'],
+      [(r) => cmp(r.link_ctr, r.bench_ctr, 2), 'n'], [(r) => cmp(r.reach_to_lead, r.bench_rtl, 3), 'n'], [(r) => r.leads, 'n'], [(r) => (r.cpl ? money(r.cpl) : '—'), 'n'], [(r) => pill(r.verdict)], [(r) => r.scenario || '—']]); });
+  dash.draw('patterns', (el) => { if (!msg(el, 'ci_patterns', 8)) return; const p = P();
+    fill(el, dd('ci_patterns').data.filter((r) => !p.goal || r.goal === p.goal).sort((a, b) => b.spend - a.spend), [[(r) => r.hook_type], [(r) => r.goal], [(r) => r.ads, 'n'], [(r) => money(r.spend), 'n'], [(r) => r.leads, 'n'], [(r) => (r.cpl ? money(r.cpl) : '—'), 'n'], [(r) => (r.hook ?? '—'), 'n'], [(r) => r.read]]); });
+  dash.draw('briefs', (el) => { if (!msg(el, 'ci_briefs', 4)) return; fill(el, dd('ci_briefs').data, [[(r) => r.rank, 'n'], [(r) => r.build], [(r) => r.why], [(r) => r.metric_to_beat]]); });
+  dash.draw('skill', (el) => {
+    const rs = st('ci_creatives') === 'ok' ? dd('ci_creatives').data : [];
+    const pick = rs.some((r) => r.scenario && /^[12]/.test(r.scenario)) || !rs.some((r) => r.verdict === 'Iterate') ? 'hook-hold' : 'one-variable';
+    const card = el.closest('.card'); if (card) card.querySelectorAll('[data-skill]').forEach((d) => { d.hidden = d.dataset.skill !== pick; });
+  });
+
+  /* ---------- multi-cursor build animation: one cursor per responsible layer ---------- */
+  const CREW = [
+    {layer: 1, skill: 'creative-intelligence', role: 'Pre-flight', target: 'controls', say: 'Checking connectors and the accounts in the settings', early: true},
+    {layer: 2, skill: 'Meta Ads MCP (free)', role: 'Data puller', target: 'tiles', say: 'Pulling ad-level rows for the applied dates…', early: true},
+    {layer: 2, skill: 'Google Drive MCP (free)', role: 'Data store', target: 'controls', say: 'Reading stored pulls; every pull is kept', early: true},
+    {layer: 2, skill: PAID ? 'Supermetrics (paid layer)' : 'Stored thumbnails', role: PAID ? 'Media + format puller' : 'Media', target: 'video-w', say: PAID ? 'Previews, creative type, 3-sec views, carousel cards' : 'Thumbnails from the dashboard store', early: true},
+    {layer: 3, skill: 'creative-intelligence', role: 'Validator', target: 'validation', say: 'Reconciling ad spend with ad-set spend (≤ 2%)'},
+    {layer: 4, skill: 'creative-intelligence', role: 'Static judge', target: 'static-w', say: 'Statics vs statics of the same campaign type'},
+    {layer: 4, skill: 'creative-intelligence', role: 'Carousel judge', target: 'carousel-w', say: 'Carousels vs carousels of the same campaign type'},
+    {layer: 5, skill: 'creative-intelligence', role: 'Video hook analyst', target: 'video-w', say: 'Hook and hold vs the same campaign type…'},
+    {layer: 6, skill: OWN.patterns, role: 'Hook-type patterns', target: 'patterns-w', say: 'Writing hook-type patterns, 3+ creatives = pattern'},
+    {layer: 7, skill: OWN.briefs, role: 'What to build next', target: 'briefs-w', say: 'Deciding what to build next…'},
+    {layer: 8, skill: 'creative-intelligence · Roadmap', role: 'Upskill coach', target: 'skill', say: "Choosing this period's skill"},
+    {layer: 9, skill: OWN.disclaimer, role: 'Disclaimer', target: 'method', say: 'Adding the disclaimer and method notes'},
+    {layer: 10, skill: 'Data dashboard', role: 'Publisher', target: 'takeaway', say: 'Writing the summary · done'},
+  ];
+  const ARROW = '<svg viewBox="0 0 18 18"><path d="M2 1l13 7-6 1.6L6.4 16z" fill="currentColor" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/></svg>';
+  const reduce = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  dash.draw('build', {
+    mount: () => ({token: null, timers: [], phase: 'idle'}),
+    update: (el, S) => {
+      const root = el.closest('.ci'); if (!root) return;
+      const steps = [...root.querySelectorAll('.ci-step')];
+      const p = P(); const token = [p.src, p.account, p.since, p.until, window.CI.applied].join('|');
+      const clear = () => { S.timers.forEach((t) => clearTimeout(t)); S.timers = []; };
+      const finish = () => { clear(); steps.forEach((s) => s.classList.add('ci-in')); root.classList.remove('ci-building'); el.replaceChildren(); S.phase = 'idle'; };
+      if (reduce() || !window.requestAnimationFrame) { finish(); return; }
+      const rb = () => root.getBoundingClientRect();
+      const posOf = (id, i) => { const t = document.getElementById(id); const R = rb(); if (!t) return [20, 20]; const r = t.getBoundingClientRect(); return [Math.max(4, Math.min(r.left - R.left + 30 + (i % 3) * 70, R.width - 250)), Math.max(0, r.top - R.top + 8)]; };
+      const type = (span, text, ms) => { let i = 0; const tick = () => { span.textContent = text.slice(0, ++i); if (i < text.length) S.timers.push(setTimeout(tick, ms)); }; tick(); };
+      const spawn = (c, i) => {
+        const color = dash.colors[i % dash.colors.length]; const cur = document.createElement('div'); cur.className = 'ci-cur'; cur.style.color = color; cur.innerHTML = ARROW;
+        const tg = document.createElement('div'); tg.className = 'ci-tag'; tg.style.background = color;
+        const b = document.createElement('b'); b.textContent = c.skill; const it = document.createElement('i'); it.textContent = `Layer ${c.layer} · ${c.role}`; const sp = document.createElement('span');
+        tg.append(b, it, sp); cur.append(tg); el.append(cur);
+        const R = rb(); cur.style.transform = `translate(${(R.width * (0.1 + 0.08 * i)) % Math.max(1, R.width - 200)}px, -60px)`; return {cur, sp};
+      };
+      const arrive = (c, i, o, onDone) => { S.timers.push(setTimeout(() => {
+        const [x, y] = posOf(c.target, i); o.cur.style.transform = `translate(${x}px, ${y}px)`;
+        S.timers.push(setTimeout(() => { type(o.sp, c.say, 12); const t = document.getElementById(c.target); const box = t && (t.closest('.ci-step') || t); if (box) box.classList.add('ci-in'); S.timers.push(setTimeout(onDone, 500)); }, 600));
+      }, 0)); };
+      const ready = st('ci_creatives') === 'ok' && st('ci_totals') === 'ok' && st('ci_briefs') === 'ok';
+      const failed = snapMode() ? false : ['ads', 'adsets'].some((id) => ['error', 'declined', 'connect'].includes(dash.data(id).status));
+      if (token !== S.token) {
+        clear(); el.replaceChildren(); S.token = token; S.phase = 'loading'; S.crew = [];
+        root.classList.add('ci-building'); steps.forEach((s) => s.classList.remove('ci-in'));
+        root.querySelectorAll('.ci-typed').forEach((n) => { n.classList.remove('ci-typed'); n.style.animation = ''; });
+        root.querySelectorAll('tr.ci-row-now').forEach((t) => t.classList.remove('ci-row-now'));
+        CREW.filter((c) => c.early).forEach((c, i) => { const o = spawn(c, i); S.crew.push(o); S.timers.push(setTimeout(() => arrive(c, i, o, () => {}), 100 + 200 * i)); });
+        S.safety = setTimeout(finish, 45000);
+      }
+      if (failed && S.phase !== 'idle') { finish(); return; }
+      const writeOut = (o, c, done) => {
+        const box = document.getElementById(c.target); if (!box) { done(); return; }
+        (box.closest('.ci-step') || box).classList.add('ci-in');
+        o.cur.style.transition = 'transform .32s ease-out, opacity .5s';
+        const at = (node) => { const R = rb(), r = node.getBoundingClientRect(); o.cur.style.transform = `translate(${Math.max(0, Math.min(r.left - R.left + Math.min(r.width, 140) - 4, R.width - 240))}px, ${Math.max(0, r.top - R.top + r.height / 2 - 6)}px)`; };
+        const typeNode = (node, ms) => { const n = Math.max(1, Math.min((node.textContent || '').trim().length, 60)); node.classList.add('ci-typed'); node.style.animation = `ci-type ${ms}ms steps(${n}) forwards`; };
+        const trs = [...box.querySelectorAll('tr')]; const isTable = trs.length > 0;
+        const units = isTable ? trs.map((tr) => ({tr, cells: [...tr.children]})) : (() => { const parts = [...box.querySelectorAll('.tile, p')].filter((pp) => !pp.closest('[hidden]')); return (parts.length ? parts : [box]).map((pp) => ({cells: [pp]})); })();
+        const N = units.length, SLOW = 4, MAX = 60; let i = 0;
+        const label = () => (isTable ? (i === 0 ? 'Writing column headers…' : `Writing row ${i} of ${N - 1}…`) : `Writing ${i + 1} of ${N}…`);
+        const next = () => {
+          if (i >= N || i >= MAX) { units.slice(i).forEach((u) => u.cells.forEach((cl) => typeNode(cl, 400))); o.sp.textContent = `✓ ${c.role}: ${isTable ? Math.max(0, N - 1) + ' rows written' : 'written'}`; done(); return; }
+          const u = units[i]; o.sp.textContent = label();
+          trs.forEach((t) => t.classList.remove('ci-row-now')); if (u.tr && i > 0) u.tr.classList.add('ci-row-now');
+          if (i <= SLOW) {
+            let j = 0;
+            const cell = () => { if (j >= u.cells.length) { i += 1; S.timers.push(setTimeout(next, 30)); return; }
+              const cl = u.cells[j++]; const ms = Math.max(60, Math.min((cl.textContent || '').trim().length * 9, 280)); at(cl); typeNode(cl, ms); S.timers.push(setTimeout(cell, ms * 0.6)); };
+            cell();
+          } else { at(u.cells[0]); u.cells.forEach((cl) => typeNode(cl, 160)); i += 1; S.timers.push(setTimeout(next, 55)); }
+        };
+        next();
+      };
+      if (ready && S.phase === 'loading') {
+        S.phase = 'revealing'; clearTimeout(S.safety); S.safety = setTimeout(finish, 300000);
+        steps.filter((s) => ['title', 'controls', 'verdicts-h', 'carousel-h', 'hooks-h', 'patterns-h', 'briefs-h', 'skill-h'].includes(s.id)).forEach((s) => s.classList.add('ci-in'));
+        const plan = [{c: CREW[1], o: S.crew[1], i: 1}, ...CREW.filter((c) => !c.early).map((c, n) => ({c, i: 4 + n}))]; let k = 0;
+        const next = () => {
+          if (k >= plan.length) { S.timers.push(setTimeout(() => { root.querySelectorAll('tr.ci-row-now').forEach((t) => t.classList.remove('ci-row-now')); el.querySelectorAll('.ci-cur').forEach((c) => { c.style.opacity = '0'; }); S.timers.push(setTimeout(() => { clearTimeout(S.safety); finish(); }, 700)); }, 900)); return; }
+          const pl = plan[k++]; const o = pl.o || spawn(pl.c, pl.i); if (!pl.o) S.crew.push(o);
+          o.cur.style.transition = '';
+          S.timers.push(setTimeout(() => {
+            const [x, y] = posOf(pl.c.target, pl.i); o.cur.style.transform = `translate(${x}px, ${y}px)`;
+            S.timers.push(setTimeout(() => { type(o.sp, pl.c.say, 10); S.timers.push(setTimeout(() => writeOut(o, pl.c, () => S.timers.push(setTimeout(next, 200))), pl.c.say.length * 10 + 120)); }, 600));
+          }, 40));
+        };
+        S.timers.push(setTimeout(next, 300));
+      }
+    },
+    unmount: (el, S) => { if (S) S.timers.forEach((t) => clearTimeout(t)); const root = el.closest('.ci'); if (root) { root.classList.remove('ci-building'); root.querySelectorAll('.ci-step').forEach((s) => s.classList.add('ci-in')); } },
+  });
+}
+</script>
