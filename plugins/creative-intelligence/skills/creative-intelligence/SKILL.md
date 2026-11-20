@@ -1,6 +1,6 @@
 ---
 name: creative-intelligence
-description: Free ad creative analysis for any business. Gives Scale/Iterate/Fix-Pause/Test verdicts, a video hook and hold diagnosis, hook-type patterns and next creative briefs from Meta and Google Ads data, using only free MCPs (Meta Ads MCP, Google Ads MCP, Google Workspace) or CSV exports. Also plans a personal upskill roadmap. Use for creative analysis, which ads to scale or pause, video hook rate, creative fatigue, ad creative briefs, or learning paid-media creative strategy.
+description: Free ad creative analysis for any business. Gives Scale/Iterate/Fix-Pause/Test verdicts, a video hook and hold diagnosis, hook-type patterns and next creative briefs from Meta and Google Ads data, using free MCPs (Meta Ads MCP, Google Ads MCP, Google Drive) or CSV exports, with optional paid layers that carry an on-page disclaimer. Builds a live, customisable dashboard on the first call. Also plans a personal upskill roadmap. Use for creative analysis, which ads to scale or pause, video hook rate, creative fatigue, ad creative briefs, or learning paid-media creative strategy.
 license: MIT
 ---
 
@@ -21,33 +21,35 @@ It works for any industry, account size and skill level, and **costs nothing to 
 | "plan my upskill journey", "what should I learn", "roadmap" | **Roadmap** |
 | "how am I progressing", "my level" | **Progress** |
 | "set this up for my team" | **Team** |
+| "build the dashboard", first call with no dashboard yet | **Dashboard** (after Setup) |
 
-If no profile exists for a Run, Roadmap or Progress request, do Setup first.
+If no profile exists for a Run, Roadmap or Progress request, do Setup first. On the **first call**, after Setup, always build the Dashboard (see Dashboard mode) unless the profile says delivery is Word, Sheet or chat only.
 
 ---
 
-## Free-tools-only rule (applies in every mode)
+## Free-core rule (applies in every mode)
 
-**Use only these. Never use a paid connector, even if one is connected.**
+**The core runs on free tools only.** A paid connector (for example Supermetrics) may be used only as an **optional layer**: only if the profile turns it on (`paid_layer`), never as the only source of a verdict, and every part of a report or dashboard that uses it shows a visible "Paid layer" label and disclaimer. If the paid layer is off or fails, those columns stay empty and the free fallback is used (for example hook from 25% views instead of 3-second views).
 
 | Job | Free tool | Notes |
 |---|---|---|
 | Meta data | **Meta's official Ads MCP** (`https://mcp.facebook.com/ads`, sign in with Facebook Business) | Free during Meta's open beta. Use **read/reporting tools only**. It can also edit ads, which this skill never does. |
 | Google data | **Google's official Google Ads MCP** (`github.com/googleads/google-ads-mcp`, open source) | Free and read-only. Runs on the user's own computer. |
 | Any platform, no setup | **CSV / XLSX export** from Ads Manager or Google Ads, uploaded to the chat | Always free. This is the fallback for everyone. |
-| Log, report storage | Google Sheets / Google Drive connector | Free with a Google account |
+| Log, report storage, data store | **Google Drive MCP** (and Google Sheets) | Free with a Google account. Each pull is saved as its own dated Sheet in a "Creative Intelligence – Data Store" folder; never overwrite older pulls. |
+| Optional paid layer | Supermetrics (FA) | Only if `paid_layer.supermetrics: true`. Adds 3-sec views, live ad previews, carousel cards, thumbnails. Always labelled "Paid layer" on the page. Honour the profile's never-pull account list. |
 | Alert | Gmail connector, to the user's own address | Free |
 | No Google account | Report and log sent as files in the conversation | Free |
 
 Never:
-- Use paid reporting connectors or aggregators.
+- Use a paid connector outside the optional, disclaimed layer.
 - Send WhatsApp or SMS, because business-initiated messages are charged.
 - Create, edit, pause or boost anything in an ad account.
 - Call paid APIs, scrapers or outside AI services.
 
 Cost re-check: at Setup and on the first run of every month, confirm each connector is still free. Meta's MCP is free *during open beta*. If one starts charging, switch that platform to CSV export and tell the user.
 
-If a step can only be done with a paid action, skip it and write "skipped: would incur cost".
+If a step can only be done with a paid action and the paid layer is off, skip it and write "skipped: would incur cost".
 
 ---
 
@@ -62,7 +64,7 @@ Ask in one short round, with multiple choice where possible. Store the answers i
 5. **Account rules.** Accounts to always include, and accounts never to pull.
 6. **Primary KPI.** CPL, CPA, ROAS, or cost per qualified lead, with a target per project (or "use account median").
 7. **Quality data.** Is there a CRM, and at what level are leads tagged (ad, campaign or project)? Use it only if it can be read for free (a connected CRM tool or an export).
-8. **Delivery.** Report format (Word, Sheet or in chat), email alert or none, and cadence (on demand, or a weekly day and time).
+8. **Delivery.** Report format (live dashboard by default; Word, Sheet or chat), build animation on or off (default on), paid layer on or off (default off), owners for patterns / briefs / disclaimer (default Media Manager / Creative Director / Legal), the disclaimer text if Legal has one, email alert or none, and cadence (on demand, or a weekly day and time).
 9. **Comparison policy.** May projects be compared with each other? (Default: no.)
 10. **Skill check.** The 6 placement questions in Roadmap mode.
 
@@ -175,9 +177,32 @@ Check every brief against the learnings saved in the profile.
 ### 8. Deliver and learn
 - **Report.** Use the profile's format, ordered project → platform → goal. Each goal section has a verdict table (with the change since last run), the video diagnosis, hook patterns and build-next briefs. The front page shows the run ID, period, data routes used, accounts, data gaps, top 5 actions and **this week's skill** (from Roadmap mode).
 - **Log.** Append to the log tabs `Runs`, `Verdicts`, `Hook Tags`, `Patterns` and `Briefs`, stamping each row with the run ID and date. Never overwrite or delete rows. Without Google Sheets, append to a log file and send it back.
+- **Build animation (on by default for web reports).** A multi-layer cursor build: one labelled cursor per responsible layer (Pre-flight, Data puller, Data store, Media puller, Validator, Static judge, Carousel judge, Video hook analyst, then the owners: Media Manager on patterns, Creative Director on briefs, Legal on the disclaimer, then Publisher). Early cursors show while data loads; once loaded, each cursor writes its section: tiles one by one and tables row by row and cell by cell (first 4 rows cell by cell, the rest row by row, at most 60 rows animated, the rest written at once). It replays after Apply. Rules: skip under prefers-reduced-motion; overlay with pointer-events off and aria-hidden; a safety timeout reveals everything; never animate print or Word output. `build_animation: off` turns it off. The template in `dashboard/index.html` already does all of this.
+- **Format tables.** Report Static, Carousel and Video in separate tables. Every benchmark ("type avg") is computed within the same campaign objective × optimisation goal × format. Statics and carousels show reach, frequency, link CTR, reach→lead; videos add 3-sec views, hook (3-sec ÷ impressions), ThruPlays and hold (ThruPlays ÷ 3-sec views), plus the diagnosis.
 - **Alert.** If the profile asks for it, email the user's own address via Gmail.
 - **Learning.** A hook type that wins 3 runs in a row for a project becomes an established learning in the profile.
-- **Final check.** Open the report, re-total spend against the validated totals, and confirm the log rows and the alert. Confirm that no paid tool was used and nothing was changed in an ad account.
+- **Final check.** Open the report, re-total spend against the validated totals, and confirm the log rows and the alert. Confirm that any paid layer is labelled, and nothing was changed in an ad account.
+
+---
+
+## Dashboard mode: build it on the first call
+
+The template lives in this skill's `dashboard/` folder (raw files: `https://raw.githubusercontent.com/RahulSa94/claudetopia/main/plugins/creative-intelligence/skills/creative-intelligence/dashboard/`). Do not rewrite the page; only fill its settings.
+
+1. **Profile → settings.** Write `profile.json` from Setup: title, currency, locale, accounts (id, name, target_cpl = monthly spend target ÷ monthly lead target), default_target_cpl, excluded_note, hook_tags (brand-specific name patterns, e.g. influencer names), paid_layer, owners, disclaimer, has_snapshot. Never list a never-pull account.
+2. **Generate.** Fetch `index.html` and `build_dashboard.py` to the workspace (curl the raw URLs, or clone the repo), then run `python3 build_dashboard.py profile.json out/`. It writes `ops_1.json` (meta, params, datasets) and `ops_2.json` (`files/config.js` + `files/index.html`).
+3. **Create.** List artifact types, create from the **Data** (dashboard) type, then send `ops_1.json` and `ops_2.json` as two db_write calls. The artifact must be private while writing (public artifacts refuse writes). Run the type's page check.
+4. **Thumbnails (optional, paid layer).** Dashboard pages cannot load images from Facebook. Pull `creative_thumbnail_url` **on its own** (combining it with video thumbnails drops statics), download the images in the workspace, store them as `data:` URLs in a JSON asset (upload_asset by file path), and add datasets `thumb_imgs` and `thumb_map` (`kind: file`). Without them the frames say "No image yet".
+5. **Data store (Google Drive MCP).** Create a "Creative Intelligence – Data Store" folder, upload each pull as a dated Sheet (by file reference, not pasted), and keep a merged `snapshot.json` (every pull kept, each row tagged `pull`, `since`, `until`, `account`) as a `snap` file dataset. The page's Data picker then shows every stored pull plus Live. Never delete or overwrite an older pull.
+6. **Refresh.** Offer a weekly scheduled task that pulls the last 90 days, uploads the dated Sheet, merges into snapshot.json, re-uploads the asset and updates `datasets/snap`.
+7. **Sharing.** Tell the user: viewers need their own Meta access for Live, or the owner shares the connector themselves (Sources → connector ⋯ → Load data using → Your access). Claude never shares a connector for them. Stored pulls work for everyone.
+8. **Customise.** Users change only `files/config.js` (projects, targets, currency, owners, disclaimer, hook tags, paid layer on/off). The page reads `window.CI_CFG`, so no code edits are needed.
+
+### Token rules
+- Move data by file: upload assets and Drive files by file reference (`sha256:<hex>:<path>`), never paste large JSON into a call.
+- Large Supermetrics results: use `compress: false` so they save to a file, then parse in the workspace.
+- Never print full pulls in chat; print counts and totals only.
+- Write the page once from the template; later changes go to config.js or small db_str_replace edits.
 
 ---
 
