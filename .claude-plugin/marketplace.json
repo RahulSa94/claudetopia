@@ -1,0 +1,21 @@
+{
+  "name": "claudetopia",
+  "owner": { "name": "RahulSa94", "url": "https://github.com/RahulSa94" },
+  "metadata": {
+    "description": "Free, practical Claude skills and plugins by RahulSa94.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "creative-intelligence",
+      "source": "./plugins/creative-intelligence",
+      "description": "Free ad creative analysis for Meta and Google Ads: Scale/Iterate/Fix-Pause/Test verdicts, video hook and hold diagnosis, hook-type patterns, next creative briefs, and a personal upskill roadmap. Uses only free MCPs or CSV exports.",
+      "version": "1.0.0",
+      "author": { "name": "RahulSa94" },
+      "license": "MIT",
+      "category": "marketing",
+      "homepage": "https://github.com/RahulSa94/claudetopia/tree/main/plugins/creative-intelligence",
+      "keywords": ["meta-ads", "facebook-ads", "google-ads", "creative-analysis", "ad-creative", "hook-rate", "creative-fatigue", "ppc", "paid-media", "marketing", "upskill", "free"]
+    }
+  ]
+}
