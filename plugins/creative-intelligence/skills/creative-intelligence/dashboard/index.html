@@ -191,11 +191,10 @@
   ['sm_previews', 'sm_format', 'sm_carousel'].forEach((id) => dash.loader(id, {description: 'Supermetrics (paid, optional) answers with a schedule id; this waits for the result and turns it into one row per ad.', fn: smLoader}));
 
   const clean = (nm) => String(nm || '').replace(/\s*[–-]\s*copy\b/ig, '').trim();
-  dash.calc('ci_thumbs', {inputs: ['ads', 'thumb_map', 'thumb_imgs'], title: 'Stored thumbnail per creative',
-    description: 'For each creative name, the first stored thumbnail of any of its ads.',
-    fn: (ads, map, imgs) => {
-      const img = new Map(imgs.map((i) => [i.img, i.thumb])); const byAd = new Map(map.map((m) => [String(m.ad_id), m.img])); const out = new Map();
-      ads.forEach((a) => { const k = clean(a.name); const t = img.get(byAd.get(a.id)); if (t && !out.has(k)) out.set(k, {key: k, creative: k, thumb: t}); });
+  dash.calc('ci_thumbs', {inputs: ['thumb_map', 'thumb_imgs'], title: 'Stored thumbnail per creative',
+    description: 'For each creative name, the first stored thumbnail of any of its ads. Uses only the stored copy, so it works for viewers without Meta access.',
+    fn: (map, imgs) => {
+      const img = new Map(imgs.map((i) => [i.img, i.thumb])); const out = new Map();
       map.forEach((m) => { const k = clean(m.ad_name); const t = img.get(m.img); if (t && !out.has(k)) out.set(k, {key: k, creative: k, thumb: t}); });
       return [...out.values()];
     }});
