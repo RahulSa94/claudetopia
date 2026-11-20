@@ -1,0 +1,10 @@
+{
+  "name": "creative-intelligence",
+  "version": "1.0.0",
+  "description": "Free ad creative analysis for Meta and Google Ads: Scale/Iterate/Fix-Pause/Test verdicts, video hook and hold diagnosis, hook-type patterns, next creative briefs, and a personal upskill roadmap. Uses only free MCPs or CSV exports.",
+  "author": { "name": "RahulSa94", "url": "https://github.com/RahulSa94" },
+  "homepage": "https://github.com/RahulSa94/claudetopia/tree/main/plugins/creative-intelligence",
+  "repository": "https://github.com/RahulSa94/claudetopia",
+  "license": "MIT",
+  "keywords": ["meta-ads", "facebook-ads", "google-ads", "creative-analysis", "ad-creative", "hook-rate", "creative-fatigue", "ppc", "paid-media", "marketing", "upskill", "free"]
+}
